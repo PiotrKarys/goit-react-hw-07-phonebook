@@ -1,0 +1,14 @@
+.label {
+  font-weight: bold;
+  color: #8b4513;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 20px;
+}
+
+.input {
+  padding: 8px;
+  border: 1px solid #8b4513;
+  border-radius: 4px;
+}

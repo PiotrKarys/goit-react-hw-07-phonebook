@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { nanoid } from "nanoid";
 import { addContact } from "../../redux/contactsSlice";
 import styles from "./ContactForm.module.css";
 
@@ -24,7 +23,7 @@ const ContactForm = () => {
     if (contacts.find((contact) => contact.name === name)) {
       alert(`${name} is already in contacts.`);
     } else {
-      dispatch(addContact({ id: nanoid(), name, number }));
+      dispatch(addContact({ name, phone: number }));
       setName("");
       setNumber("");
     }
@@ -37,8 +36,6 @@ const ContactForm = () => {
         <input
           type="text"
           name="name"
-          pattern=".*[a-zA-Z].*"
-          title="Name must contain at least one letter"
           required
           value={name}
           onChange={handleChange}
@@ -49,8 +46,6 @@ const ContactForm = () => {
         <input
           type="tel"
           name="number"
-          pattern="^\+?[0-9\-]+$"
-          title="Phone number must be digits and can start with +"
           required
           value={number}
           onChange={handleChange}

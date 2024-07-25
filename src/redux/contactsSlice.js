@@ -1,55 +1,69 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
-const initialContacts = [
-  { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
-  { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
-  { id: "id-3", name: "Eden Clements", number: "645-17-79" },
-  { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
-];
+const API_URL = "https://66a00bebb132e2c136ffe5d3.mockapi.io/contacts/contacts";
 
-const loadContacts = () => {
-  try {
-    const savedContacts = JSON.parse(localStorage.getItem("contacts"));
-    if (Array.isArray(savedContacts)) {
-      return savedContacts;
-    }
-    return initialContacts;
-  } catch (error) {
-    console.error("Failed to load contacts from localStorage:", error);
-    return initialContacts;
-  }
-};
+export const fetchContacts = createAsyncThunk(
+  "contacts/fetchContacts",
+  async () => {
+    const response = await axios.get(API_URL);
+    return response.data;
+  },
+);
 
-const saveContacts = (contacts) => {
-  try {
-    localStorage.setItem("contacts", JSON.stringify(contacts));
-  } catch (error) {
-    console.error("Failed to save contacts to localStorage:", error);
-  }
-};
+export const addContact = createAsyncThunk(
+  "contacts/addContact",
+  async (contact) => {
+    const response = await axios.post(API_URL, contact);
+    return response.data;
+  },
+);
+
+export const deleteContact = createAsyncThunk(
+  "contacts/deleteContact",
+  async (id) => {
+    await axios.delete(`${API_URL}/${id}`);
+    return id;
+  },
+);
 
 const contactsSlice = createSlice({
   name: "contacts",
   initialState: {
-    items: loadContacts(),
+    items: [],
     filter: "",
+    loading: false,
+    error: null,
   },
   reducers: {
-    addContact: (state, action) => {
-      state.items.push(action.payload);
-      saveContacts(state.items);
-    },
-    deleteContact: (state, action) => {
-      state.items = state.items.filter(
-        (contact) => contact.id !== action.payload,
-      );
-      saveContacts(state.items);
-    },
     setFilter: (state, action) => {
       state.filter = action.payload;
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchContacts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchContacts.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+      })
+      .addCase(fetchContacts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(addContact.fulfilled, (state, action) => {
+        state.items.push(action.payload);
+      })
+      .addCase(deleteContact.fulfilled, (state, action) => {
+        state.items = state.items.filter(
+          (contact) => contact.id !== action.payload,
+        );
+      });
+  },
 });
 
-export const { addContact, deleteContact, setFilter } = contactsSlice.actions;
+export const { setFilter } = contactsSlice.actions;
 export const contactsReducer = contactsSlice.reducer;
